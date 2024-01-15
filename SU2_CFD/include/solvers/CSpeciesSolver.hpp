@@ -91,6 +91,19 @@ class CSpeciesSolver : public CScalarSolver<CSpeciesVariable> {
    */
   void Viscous_Residual(unsigned long iEdge, CGeometry* geometry, CSolver** solver_container, CNumerics* numerics,
                         CConfig* config) final;
+  
+  /*!
+   * \brief Recompute the extrapolated quantities, after MUSCL reconstruction,
+   *        in a more thermodynamically consistent way.
+   * \note This method is static to improve the chances of it being used in a
+   *       thread-safe manner.
+   * \param[in,out] fluidModel - The fluid model.
+   * \param[in] nDim - Number of physical dimensions.
+   * \param[in,out] primitive - Primitive variables.
+   * \param[out] scalar - scalar variable for species transport model.
+   */
+  static void ComputeConsistentExtrapolation(CFluidModel* fluidModel, unsigned short nDim, su2double* primitive,
+                                             su2double* scalar);
 
   /*!
    * \brief Impose the inlet boundary condition.

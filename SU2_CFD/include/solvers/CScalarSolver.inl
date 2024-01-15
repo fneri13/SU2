@@ -133,6 +133,7 @@ void CScalarSolver<VariableType>::Upwind_Residual(CGeometry* geometry, CSolver**
    * before calling these solver functions. ---*/
   const bool implicit = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
   const bool muscl = config->GetMUSCL();
+  const bool species_transport = (RUNTIME_TYPE::RUNTIME_SPECIES_SYS==25);
   const bool limiter = (config->GetKind_SlopeLimit() != LIMITER::NONE) &&
                        (config->GetInnerIter() <= config->GetLimiterIter());
 
@@ -206,36 +207,36 @@ void CScalarSolver<VariableType>::Upwind_Residual(CGeometry* geometry, CSolver**
           Vector_ij[iDim] = 0.5 * (Coord_j[iDim] - Coord_i[iDim]);
         }
 
-        if (musclFlow && !bounded_scalar) {
-          /*--- Reconstruct mean flow primitive variables, note that in bounded scalar mode this is
-           * not necessary because the edge mass flux is read directly from the flow solver, instead
-           * of being computed from the primitive flow variables. ---*/
+        // if (musclFlow && !bounded_scalar) {
+        //   /*--- Reconstruct mean flow primitive variables, note that in bounded scalar mode this is
+        //    * not necessary because the edge mass flux is read directly from the flow solver, instead
+        //    * of being computed from the primitive flow variables. ---*/
 
-          auto Gradient_i = flowNodes->GetGradient_Reconstruction(iPoint);
-          auto Gradient_j = flowNodes->GetGradient_Reconstruction(jPoint);
+        //   auto Gradient_i = flowNodes->GetGradient_Reconstruction(iPoint);
+        //   auto Gradient_j = flowNodes->GetGradient_Reconstruction(jPoint);
 
-          if (limiterFlow) {
-            Limiter_i = flowNodes->GetLimiter_Primitive(iPoint);
-            Limiter_j = flowNodes->GetLimiter_Primitive(jPoint);
-          }
+        //   if (limiterFlow) {
+        //     Limiter_i = flowNodes->GetLimiter_Primitive(iPoint);
+        //     Limiter_j = flowNodes->GetLimiter_Primitive(jPoint);
+        //   }
 
-          for (iVar = 0; iVar < solver_container[FLOW_SOL]->GetnPrimVarGrad(); iVar++) {
-            su2double Project_Grad_i = 0.0;
-            su2double Project_Grad_j = 0.0;
-            for (iDim = 0; iDim < nDim; iDim++) {
-              Project_Grad_i += Vector_ij[iDim] * Gradient_i[iVar][iDim];
-              Project_Grad_j -= Vector_ij[iDim] * Gradient_j[iVar][iDim];
-            }
-            if (limiterFlow) {
-              Project_Grad_i *= Limiter_i[iVar];
-              Project_Grad_j *= Limiter_j[iVar];
-            }
-            flowPrimVar_i[iVar] = V_i[iVar] + Project_Grad_i;
-            flowPrimVar_j[iVar] = V_j[iVar] + Project_Grad_j;
-          }
+        //   for (iVar = 0; iVar < solver_container[FLOW_SOL]->GetnPrimVarGrad(); iVar++) {
+        //     su2double Project_Grad_i = 0.0;
+        //     su2double Project_Grad_j = 0.0;
+        //     for (iDim = 0; iDim < nDim; iDim++) {
+        //       Project_Grad_i += Vector_ij[iDim] * Gradient_i[iVar][iDim];
+        //       Project_Grad_j -= Vector_ij[iDim] * Gradient_j[iVar][iDim];
+        //     }
+        //     if (limiterFlow) {
+        //       Project_Grad_i *= Limiter_i[iVar];
+        //       Project_Grad_j *= Limiter_j[iVar];
+        //     }
+        //     flowPrimVar_i[iVar] = V_i[iVar] + Project_Grad_i;
+        //     flowPrimVar_j[iVar] = V_j[iVar] + Project_Grad_j;
+        //   }
 
-          numerics->SetPrimitive(flowPrimVar_i, flowPrimVar_j);
-        }
+        //   numerics->SetPrimitive(flowPrimVar_i, flowPrimVar_j);
+        // }
 
         if (muscl) {
           /*--- Reconstruct scalar variables. ---*/

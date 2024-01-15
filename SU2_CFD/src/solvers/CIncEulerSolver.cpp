@@ -1223,6 +1223,7 @@ void CIncEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_cont
   const bool limiter    = (config->GetKind_SlopeLimit_Flow() != LIMITER::NONE);
   const bool van_albada = (config->GetKind_SlopeLimit_Flow() == LIMITER::VAN_ALBADA_EDGE);
   const bool bounded_scalar = config->GetBounded_Scalar();
+  const bool species_transport = config->GetKind_Species_Model()==SPECIES_MODEL::SPECIES_TRANSPORT;
 
   /*--- For hybrid parallel AD, pause preaccumulation if there is shared reading of
   * variables, otherwise switch to the faster adjoint evaluation mode. ---*/
@@ -1301,6 +1302,19 @@ void CIncEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_cont
         Primitive_j[iVar] = V_j[iVar];
       }
 
+      su2double *Scalar_i = nullptr;
+      su2double *Scalar_j = nullptr;
+
+      if (species_transport){
+        Scalar_i = solver_container[SPECIES_SOL]->GetNodes()->GetSolution(iPoint);
+        Scalar_j = solver_container[SPECIES_SOL]->GetNodes()->GetSolution(jPoint);
+      }
+
+      if (config->GetKind_DensityModel()==INC_DENSITYMODEL::VARIABLE && config->GetEnergy_Equation()){
+        ComputeConsistentExtrapolation(GetFluidModel(), nDim, Primitive_i, Scalar_i);
+        ComputeConsistentExtrapolation(GetFluidModel(), nDim, Primitive_j, Scalar_j);
+      }
+
       /*--- Check for non-physical solutions after reconstruction. If found,
        use the cell-average value of the solution. This results in a locally
        first-order approximation, but this is typically only active
@@ -1369,6 +1383,16 @@ void CIncEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_cont
   } // end color loop
 
   FinalizeResidualComputation(geometry, pausePreacc, counter_local, config);
+}
+
+void CIncEulerSolver::ComputeConsistentExtrapolation(CFluidModel *fluidModel, unsigned short nDim,
+                                                  su2double *primitive, su2double *scalar) {
+  const CIncEulerVariable::CIndices<unsigned short> prim_idx(nDim, 0);
+  const su2double Temperature = primitive[prim_idx.Temperature()];
+
+  fluidModel->SetTDState_T(Temperature, scalar);
+
+  primitive[prim_idx.Density()] = fluidModel->GetDensity();
 }
 
 void CIncEulerSolver::Source_Residual(CGeometry *geometry, CSolver **solver_container,
