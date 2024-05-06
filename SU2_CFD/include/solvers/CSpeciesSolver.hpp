@@ -103,6 +103,15 @@ class CSpeciesSolver : public CScalarSolver<CSpeciesVariable> {
    */
   void BC_Inlet(CGeometry* geometry, CSolver** solver_container, CNumerics* conv_numerics, CNumerics* visc_numerics,
                 CConfig* config, unsigned short val_marker) override;
+  
+  void BC_Wall_Generic(CGeometry* geometry, CSolver** solver_container, CNumerics* conv_numerics,
+                                  CNumerics* visc_numerics, CConfig* config, unsigned short val_marker);
+  
+  void BC_Isothermal_Wall(CGeometry* geometry, CSolver** solver_container, CNumerics* conv_numerics,
+                          CNumerics* visc_numerics, CConfig* config, unsigned short val_marker) override;
+
+  void BC_HeatFlux_Wall(CGeometry* geometry, CSolver** solver_container, CNumerics* conv_numerics,
+                        CNumerics* visc_numerics, CConfig* config, unsigned short val_marker) override;
 
   /*!
    * \brief Store of a set of provided inlet profile values at a vertex.
