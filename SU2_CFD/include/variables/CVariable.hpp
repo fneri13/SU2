@@ -1531,6 +1531,12 @@ public:
 
   /*!
    * \brief A virtual member.
+   * \param[in] val_velocity - Pointer to the velocity.
+   */
+  inline virtual void SetDensity_Old(unsigned long iPoint, const su2double val_density) {}
+
+  /*!
+   * \brief A virtual member.
    * \param[in] laminarViscosity
    */
   inline virtual void SetLaminarViscosity(unsigned long iPoint, su2double laminarViscosity) {}

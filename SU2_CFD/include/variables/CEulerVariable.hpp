@@ -282,11 +282,28 @@ class CEulerVariable : public CFlowVariable {
   }
 
   /*!
+   * \brief Set the velocity vector from the old solution.
+   * \param[in] val_velocity - Pointer to the velocity.
+   */
+  inline void SetDensity_Old(unsigned long iPoint, const su2double val_density) final {
+    Solution_Old(iPoint, 0) = val_density;
+  }
+
+  /*!
    * \brief Set the momentum part of the truncation error to zero.
    * \param[in] iPoint - Point index.
    */
   inline void SetVel_ResTruncError_Zero(unsigned long iPoint) final {
     for (unsigned long iDim = 0; iDim < nDim; iDim++) Res_TruncError(iPoint,iDim+1) = 0.0;
+  }
+
+
+  /*!
+   * \brief Set the momentum part of the truncation error to zero.
+   * \param[in] iPoint - Point index.
+   */
+  inline void SetDensity_ResTruncError_Zero(unsigned long iPoint) {
+    Res_TruncError(iPoint,0) = 0.0;
   }
 
   /*!

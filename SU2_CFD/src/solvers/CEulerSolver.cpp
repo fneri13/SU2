@@ -7096,8 +7096,8 @@ void CEulerSolver::BC_Inlet(CGeometry *geometry, CSolver **solver_container,
           if (tkeNeeded) Energy += GetTke_Inf();
 
           /*--- Primitive variables, using the derived quantities ---*/
-
-          V_inlet[0] = Pressure / ( Gas_Constant * Density);
+          Temperature = Pressure / ( Gas_Constant * Density);
+          V_inlet[0] = Temperature;
           for (iDim = 0; iDim < nDim; iDim++)
             V_inlet[iDim+1] = Vel_Mag*Flow_Dir[iDim];
           V_inlet[nDim+1] = Pressure;
@@ -7109,6 +7109,66 @@ void CEulerSolver::BC_Inlet(CGeometry *geometry, CSolver **solver_container,
         default:
           SU2_MPI::Error("Unsupported INLET_TYPE.", CURRENT_FUNCTION);
           break;
+      }
+
+            /*--- Check if the inlet node is shared with a viscous wall. ---*/
+
+      if (geometry->nodes->GetViscousBoundary(iPoint)) {
+
+        switch (Kind_Inlet) {
+
+          /*--- Total properties have been specified at the inlet. ---*/
+
+          case INLET_TYPE::TOTAL_CONDITIONS: {
+
+            /*--- Impose the wall velocity from the interior wall node. ---*/
+
+            Velocity2 = 0.0;
+            for (iDim = 0; iDim < nDim; iDim++) {
+              V_inlet[iDim+1] = nodes->GetVelocity(iPoint,iDim);
+              Velocity2 += V_inlet[iDim+1] * V_inlet[iDim+1];
+            }
+
+            /*--- Match the pressure, density and energy at the wall. ---*/
+
+            Pressure = nodes->GetPressure(iPoint);
+            Density = Pressure / (Gas_Constant * Temperature);
+            Energy = Pressure / (Density*Gamma_Minus_One) + 0.5 * Velocity2;
+            if (tkeNeeded) Energy += GetTke_Inf();
+
+            V_inlet[nDim+1] = Pressure;
+            V_inlet[nDim+2] = Density;
+            V_inlet[nDim+3] = Energy + Pressure/Density;
+            break;
+          }
+
+          case INLET_TYPE::MASS_FLOW: {
+
+            /*--- Impose the wall velocity from the interior wall node. ---*/
+
+            Velocity2 = 0.0;
+            for (iDim = 0; iDim < nDim; iDim++) {
+              V_inlet[iDim+1] = nodes->GetVelocity(iPoint,iDim);
+              Velocity2 += V_inlet[iDim+1] * V_inlet[iDim+1];
+            }
+
+            Pressure = nodes->GetPressure(iPoint);
+            Density = nodes->GetDensity(iPoint);
+
+            Energy = Pressure / (Density * Gamma_Minus_One)  + 0.5 * Velocity2;
+
+            if (tkeNeeded) Energy += GetTke_Inf();
+
+            V_inlet[nDim+3] = Energy + Pressure/Density;
+
+            break;
+          }
+
+          default:
+            SU2_MPI::Error("Unsupported INLET_TYPE.", CURRENT_FUNCTION);
+            break;
+
+        }
       }
 
       /*--- Set various quantities in the solver class ---*/

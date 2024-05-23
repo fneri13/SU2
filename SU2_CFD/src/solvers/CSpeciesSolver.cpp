@@ -517,7 +517,7 @@ void CSpeciesSolver::BC_Wall_Generic(CGeometry* geometry, CSolver** solver_conta
       //LinSysRes(iPoint, iVar) += Flux;
     }
     auto residual = Flux;
-    LinSysRes.AddBlock(iPoint, residual);
+    //LinSysRes.AddBlock(iPoint, residual);
     //LinSysRes.SubtractBlock(jPoint, residual);
 
     // /*--- Enforce the no-slip boundary condition in a strong way by
