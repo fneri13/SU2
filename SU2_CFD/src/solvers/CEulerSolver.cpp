@@ -7125,15 +7125,15 @@ void CEulerSolver::BC_Inlet(CGeometry *geometry, CSolver **solver_container,
 
             Velocity2 = 0.0;
             for (iDim = 0; iDim < nDim; iDim++) {
-              V_inlet[iDim+1] = nodes->GetVelocity(iPoint,iDim);
+              V_inlet[iDim+1] = 0.0;
               Velocity2 += V_inlet[iDim+1] * V_inlet[iDim+1];
             }
 
             /*--- Match the pressure, density and energy at the wall. ---*/
 
             Pressure = nodes->GetPressure(iPoint);
-            Density = Pressure / (Gas_Constant * Temperature);
-            Energy = Pressure / (Density*Gamma_Minus_One) + 0.5 * Velocity2;
+            Density = nodes->GetDensity(iPoint);
+            Energy = Pressure / (Density*Gamma_Minus_One);
             if (tkeNeeded) Energy += GetTke_Inf();
 
             V_inlet[nDim+1] = Pressure;
@@ -7177,19 +7177,22 @@ void CEulerSolver::BC_Inlet(CGeometry *geometry, CSolver **solver_container,
 
       if (dynamic_grid)
         conv_numerics->SetGridVel(geometry->nodes->GetGridVel(iPoint), geometry->nodes->GetGridVel(iPoint));
+      
+      bool inlet_check = geometry->nodes->GetViscousBoundary(iPoint);
 
       /*--- Compute the residual using an upwind scheme ---*/
 
       auto residual = conv_numerics->ComputeResidual(config);
 
-      /*--- Update residual value ---*/
+      if (true) {
+        /*--- Update residual value ---*/
 
-      LinSysRes.AddBlock(iPoint, residual);
+        LinSysRes.AddBlock(iPoint, residual);
 
-      /*--- Jacobian contribution for implicit integration ---*/
+        /*--- Jacobian contribution for implicit integration ---*/
 
-      if (implicit)
-        Jacobian.AddBlock2Diag(iPoint, residual.jacobian_i);
+        if (implicit) Jacobian.AddBlock2Diag(iPoint, residual.jacobian_i);
+      }
 
 //      /*--- Viscous contribution, commented out because serious convergence problems ---*/
 //

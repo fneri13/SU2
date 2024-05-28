@@ -449,25 +449,47 @@ void CSpeciesSolver::BC_Wall_Generic(CGeometry* geometry, CSolver** solver_conta
 
     const auto Point_Normal = geometry->vertex[val_marker][iVertex]->GetNormal_Neighbor();
 
-    /*--- Get coordinates of i & nearest normal and compute distance ---*/
+    /*--- Allocate the value at the wall ---*/
 
-    const auto Coord_i = geometry->nodes->GetCoord(iPoint);
-    const auto Coord_j = geometry->nodes->GetCoord(Point_Normal);
-    su2double density_i = solver_container[FLOW_SOL]->GetNodes()->GetDensity(iPoint);
-    su2double density_j = solver_container[FLOW_SOL]->GetNodes()->GetDensity(Point_Normal);
-    su2double* scalar_i = nodes->GetSolution(iPoint);
-    su2double* scalar_j = nodes->GetSolution(Point_Normal);
-    su2double Velocity_i[nDim], Velocity_j[nDim];
-    for (int iDim = 0; iDim < nDim; iDim++) {
-      Velocity_i[iDim] = solver_container[FLOW_SOL]->GetNodes()->GetVelocity(iPoint, iDim);
-      Velocity_j[iDim] = solver_container[FLOW_SOL]->GetNodes()->GetVelocity(Point_Normal, iDim);
-    }
-    su2double qij =0.0;
-     for (int iDim = 0; iDim < nDim; iDim++) {
-      qij+=0.5*(Velocity_i[iDim]+Velocity_j[iDim])*Normal[iDim];
-    }
-    su2double a0 = fmax(0.0, qij);
-    su2double a1 = fmin(0.0, qij);
+    // auto V_wall = solver_container[FLOW_SOL]->GetCharacPrimVar(val_marker, iVertex);
+    // V_wall[prim_idx.Density()] = solver_container[FLOW_SOL]->GetNodes()->GetDensity(Point_Normal);
+    // //cout<<V_wall[prim_idx.Density()]<<endl;
+    // for (auto iDim = 0; iDim < nDim; iDim++)
+    //   V_wall[iDim + prim_idx.Velocity()] = -solver_container[FLOW_SOL]->GetNodes()->GetVelocity(Point_Normal, iDim);
+    // const su2double* velocity = &V_wall[prim_idx.Velocity()];
+    // const su2double density = solver_container[FLOW_SOL]->GetNodes()->GetDensity(Point_Normal);
+    // BoundedScalarBCFlux(iPoint, implicit, density, velocity, Normal);
+    // su2double test_1 = V_wall[prim_idx.Velocity()];
+    // cout<<test_1<<endl;
+    // su2double test_2 = V_wall[1+prim_idx.Velocity()];
+    // cout<<test_2<<endl;
+
+
+    // /*--- Retrieve solution at the farfield boundary node ---*/
+
+    // auto V_domain = solver_container[FLOW_SOL]->GetNodes()->GetPrimitive(iPoint);
+
+    // /*--- Set various quantities in the solver class ---*/
+
+    // conv_numerics->SetPrimitive(V_domain, V_wall);
+
+    // /*--- Set the species variable state at the inlet. ---*/
+
+    // conv_numerics->SetScalarVar(nodes->GetSolution(iPoint), nodes->GetSolution(Point_Normal));
+
+    // /*--- Set various other quantities in the solver class ---*/
+
+    // if (dynamic_grid)
+    //   conv_numerics->SetGridVel(geometry->nodes->GetGridVel(iPoint), geometry->nodes->GetGridVel(iPoint));
+
+    // /*--- Compute the residual using an upwind scheme ---*/
+
+    // auto residual = conv_numerics->ComputeResidual(config);
+    // LinSysRes.AddBlock(iPoint, residual);
+
+    // /*--- Jacobian contribution for implicit integration ---*/
+
+    // if (implicit) Jacobian.AddBlock2Diag(iPoint, residual.jacobian_i);
 
     // work in progress on real-gases...
     // thermal_conductivity = nodes->GetThermalConductivity(iPoint);
@@ -511,12 +533,12 @@ void CSpeciesSolver::BC_Wall_Generic(CGeometry* geometry, CSolver** solver_conta
     // }
 
     // /*--- Convective and viscous contributions to the residual at the wall ---*/
-    su2double Flux[nVar];
-    for (auto iVar = 0u; iVar < nVar; iVar++) {
-      Flux[iVar] =  scalar_i[iVar]*density_i * a0 + scalar_j[iVar]*density_j * a1;
-      //LinSysRes(iPoint, iVar) += Flux;
-    }
-    auto residual = Flux;
+    // su2double Flux[nVar];
+    // for (auto iVar = 0u; iVar < nVar; iVar++) {
+    //   Flux[iVar] =  scalar_i[iVar]*density_i * a0 + scalar_j[iVar]*density_j * a1;
+    //   //LinSysRes(iPoint, iVar) += Flux;
+    // }
+    // auto residual = Flux;
     //LinSysRes.AddBlock(iPoint, residual);
     //LinSysRes.SubtractBlock(jPoint, residual);
 

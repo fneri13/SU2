@@ -690,8 +690,10 @@ void CNSSolver::BC_Isothermal_Wall_Generic(CGeometry *geometry, CSolver **solver
     for (auto iDim = 0u; iDim < nDim; iDim++)
       LinSysRes(iPoint, iDim+1) = 0.0;
     nodes->SetVel_ResTruncError_Zero(iPoint);
-    const su2double density=(Gamma_Minus_One)*energy/(Gas_Constant*Twall);
+    const su2double density = Gamma_Minus_One * energy / (Gas_Constant * Twall);
     nodes->SetDensity_Old(iPoint, density);
+    nodes->SetPressure(iPoint, nodes->GetPressure(Point_Normal));
+    nodes->SetEnthalpy(iPoint);
     nodes->SetVal_ResTruncError_Zero(iPoint,0);
 
     /*--- Get transport coefficients ---*/
